@@ -9,7 +9,7 @@ all: build
 
 ## vela: fetch the pinned Vela + vela-nova sources and install the test shim.
 vela:
-	./scripts/fetch-vela.sh
+	bash ./scripts/fetch-vela.sh
 
 ## apps: compile the reference WASM apps (needs TinyGo v0.39.0 and `make vela`).
 apps: apps/nova.wasm apps/tipjar.wasm
