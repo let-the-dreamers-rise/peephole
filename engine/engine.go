@@ -252,6 +252,7 @@ func (w *World) Submit(r Request) Observation {
 
 	w.log.Reset()
 	up, st, _, err := w.exec.HandleProcessRequest(context.Background(), req, w.state, w.wasm)
+	w.log.Settle()
 	obs.GuestLogs = w.log.GuestLines()
 	if err != nil {
 		obs.HarnessErr = err.Error()

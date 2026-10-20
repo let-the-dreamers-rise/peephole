@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 )
 
 // CaptureLogger implements Vela's logger.Logger and keeps the guest log lines
@@ -22,6 +23,29 @@ func (l *CaptureLogger) Reset() {
 	l.mu.Lock()
 	l.lines = nil
 	l.mu.Unlock()
+}
+
+// Settle waits until no new guest line has arrived for a short quiet period.
+// Vela forwards guest output through an OS pipe drained by a background
+// goroutine, so a line written during a request can land just after the
+// executor returns; without this, a step's log could be missed (or attributed
+// to the next step).
+func (l *CaptureLogger) Settle() {
+	const quiet, max = 5 * time.Millisecond, 200 * time.Millisecond
+	deadline := time.Now().Add(max)
+	l.mu.Lock()
+	n := len(l.lines)
+	l.mu.Unlock()
+	for time.Now().Before(deadline) {
+		time.Sleep(quiet)
+		l.mu.Lock()
+		m := len(l.lines)
+		l.mu.Unlock()
+		if m == n {
+			return
+		}
+		n = m
+	}
 }
 
 // GuestLines returns guest lines at or above the network level.

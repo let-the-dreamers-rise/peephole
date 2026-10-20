@@ -52,6 +52,8 @@ your app.wasm ─▶ engine ─▶ Horizen StatelessExecutor + Wasmtime  (real V
 | `amount-by-length` | public (chain) | the magnitude class of a private amount, from unpadded ciphertext length |
 | `operator-counterparty` | manager operator | the recipient of a "private" transfer, from cleartext routing metadata |
 | `guest-log-leak` | manager operator | any private value an app writes to a forwarded log line |
+| `error-message-leak` | public (chain) | any private value an app formats into a failed request's on-chain error message |
+| `comparison-target` | public (chain) | the hidden target of a private balance comparison, from unpadded result length + balances replayed from public deposits/withdrawals (opt-in via `checkParams`) |
 
 Each check documents the *leak pattern* it probes, not an app-specific bug, so it applies to any Vela app whose policy names the relevant field. The reference app passes `guest-log-leak` (it logs no private value) — the suite is not a rubber stamp; see the unit tests in `check/`.
 
@@ -82,6 +84,7 @@ make vela     # fetch pinned Vela + vela-nova into third_party/, install the tes
 make apps     # compile the reference apps to WASM (TinyGo)
 make test     # unit tests + the nova integration test
 make check    # run the full suite against the reference payments app
+make check-simple  # run it against Vela's own sample app (app/simple)
 ```
 
 ## Writing a policy for your app

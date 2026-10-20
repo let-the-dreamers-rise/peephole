@@ -22,13 +22,16 @@ type VisibleEvent struct {
 
 // View is one step as one audience sees it.
 type View struct {
-	Label       string
-	Audience    spec.Audience
-	Sender      ethCommon.Address // request submitter (public on-chain)
-	Deposit     *big.Int
-	DepositTok  ethCommon.Address
-	PayloadLen  int // encrypted payload size in submitRequest calldata
-	OK          bool
+	Label      string
+	Audience   spec.Audience
+	Sender     ethCommon.Address // request submitter (public on-chain)
+	Deposit    *big.Int
+	DepositTok ethCommon.Address
+	PayloadLen int // encrypted payload size in submitRequest calldata
+	OK         bool
+	// ErrorMsg is the (≤100-byte) error string of a failed request. The
+	// executor signs it into the UpdatePayload posted on-chain, so it is public.
+	ErrorMsg    string
 	UserEvents  []VisibleEvent
 	AppEvents   []engine.AppEventView
 	Withdrawals []engine.WithdrawalView
@@ -39,7 +42,7 @@ type View struct {
 func Project(st trace.Step, a spec.Audience) View {
 	o := st.Obs
 	v := View{Label: st.Label, Audience: a, Sender: o.Sender, Deposit: o.Deposit,
-		DepositTok: o.DepositToken, PayloadLen: o.PayloadLen, OK: o.OK}
+		DepositTok: o.DepositToken, PayloadLen: o.PayloadLen, OK: o.OK, ErrorMsg: o.ErrorMsg}
 	for _, w := range o.Withdrawals {
 		v.Withdrawals = append(v.Withdrawals, engine.WithdrawalView{
 			Token: w.TokenAddress, To: w.DestinationAddress, Amount: w.Amount.ToInt()})

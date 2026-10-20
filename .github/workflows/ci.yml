@@ -18,3 +18,5 @@ jobs:
         run: ./bin/peephole -policy specs/nova.json -app apps/nova.wasm -scenario nova || true
       - name: Demo — leaky example fails, hardened example passes (gates the build)
         run: make demo
+      - name: Privacy conformance — Vela sample app (expected FAIL until fixed upstream)
+        run: make check-simple || true

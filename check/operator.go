@@ -21,8 +21,10 @@ func init() {
 // that routing address is a full disclosure.
 type operatorCounterparty struct{}
 
-func (operatorCounterparty) ID() string       { return "operator-counterparty" }
-func (operatorCounterparty) Describe() string { return "operator reads the event recipient from routing metadata" }
+func (operatorCounterparty) ID() string { return "operator-counterparty" }
+func (operatorCounterparty) Describe() string {
+	return "operator reads the event recipient from routing metadata"
+}
 
 func (operatorCounterparty) Run(t *trace.Trace, p *spec.Policy) []Finding {
 	vis, ok := p.Field("counterparty")
@@ -64,8 +66,10 @@ func (operatorCounterparty) Run(t *trace.Trace, p *spec.Policy) []Finding {
 // If an app logs a value the policy marks private-from-operator, it leaks.
 type guestLogLeak struct{}
 
-func (guestLogLeak) ID() string       { return "guest-log-leak" }
-func (guestLogLeak) Describe() string { return "private values appear in guest logs forwarded to the host" }
+func (guestLogLeak) ID() string { return "guest-log-leak" }
+func (guestLogLeak) Describe() string {
+	return "private values appear in guest logs forwarded to the host"
+}
 
 func (guestLogLeak) Run(t *trace.Trace, p *spec.Policy) []Finding {
 	var out []Finding
@@ -80,20 +84,7 @@ func (guestLogLeak) Run(t *trace.Trace, p *spec.Policy) []Finding {
 			if !ok || vis.Allows(spec.Operator) {
 				continue
 			}
-			var needles []string
-			switch s.Kind {
-			case trace.KAddress:
-				needles = []string{strings.ToLower(s.Addr.Hex())}
-			case trace.KUint:
-				if s.Uint != nil {
-					needles = []string{s.Uint.String(), "0x" + s.Uint.Text(16), weiHint(s.Uint)}
-				}
-			case trace.KString:
-				if s.Str != "" {
-					needles = []string{strings.ToLower(s.Str)}
-				}
-			}
-			for _, nd := range needles {
+			for _, nd := range secretNeedles(s) {
 				if nd == "" {
 					continue
 				}
@@ -113,6 +104,24 @@ func (guestLogLeak) Run(t *trace.Trace, p *spec.Policy) []Finding {
 		}
 	}
 	return out
+}
+
+// secretNeedles lists the lower-case textual forms a secret takes when an app
+// formats it into a string (log line, error message).
+func secretNeedles(s trace.Secret) []string {
+	switch s.Kind {
+	case trace.KAddress:
+		return []string{strings.ToLower(s.Addr.Hex())}
+	case trace.KUint:
+		if s.Uint != nil {
+			return []string{s.Uint.String(), "0x" + s.Uint.Text(16), weiHint(s.Uint)}
+		}
+	case trace.KString:
+		if s.Str != "" {
+			return []string{strings.ToLower(s.Str)}
+		}
+	}
+	return nil
 }
 
 func weiHint(u *big.Int) string { return "" } // reserved for unit-scaled matching

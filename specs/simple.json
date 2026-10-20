@@ -1,0 +1,17 @@
+{
+  "app": "vela simple (Horizen sample app: accounts + private balance comparison)",
+  "description": "ETH accounts funded by public deposits (amount in clear calldata and a public deposit_received app event) and drained by public withdrawals. Because every balance change is public, balances and therefore comparison outcomes are derivable from the chain by design and are NOT declared private. What the app does keep private is the comparison query: the target address is only in the encrypted payload, the result is encrypted to the requester, and the target is never notified. 'counterparty' here means that comparison target; it is not in the deanonymization report, so not even an auditor is meant to see it.",
+  "fields": [
+    { "field": "counterparty",  "visibleTo": [] },
+    { "field": "compareResult", "visibleTo": ["public", "operator"] },
+    { "field": "balance",       "visibleTo": ["public", "operator", "auditor"] }
+  ],
+  "checks": ["event-linkability", "amount-by-length", "commitment-preimage", "operator-counterparty", "guest-log-leak", "error-message-leak", "comparison-target"],
+  "checkParams": {
+    "comparison-target": {
+      "targetField": "counterparty",
+      "resultField": "compareResult",
+      "outcomes": { "richer than": "lt", "poorer than": "gt", "as wealthy as": "eq" }
+    }
+  }
+}

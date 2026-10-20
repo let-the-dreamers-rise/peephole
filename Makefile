@@ -3,7 +3,7 @@ TINYGO ?= tinygo
 NOVA   := third_party/vela-nova/runtime/wasm-go
 SIMPLE := third_party/vela/app/simple
 
-.PHONY: all vela apps build test check demo clean
+.PHONY: all vela apps build test check check-simple demo clean
 
 all: build
 
@@ -12,11 +12,15 @@ vela:
 	bash ./scripts/fetch-vela.sh
 
 ## apps: compile the reference WASM apps (needs TinyGo v0.39.0 and `make vela`).
-apps: apps/nova.wasm apps/tipjar.wasm
+apps: apps/nova.wasm apps/tipjar.wasm apps/simple.wasm
 
 apps/nova.wasm: $(NOVA)
 	@mkdir -p apps
 	cd $(NOVA) && $(TINYGO) build -o $(CURDIR)/apps/nova.wasm -target=wasi .
+
+apps/simple.wasm: $(SIMPLE)
+	@mkdir -p apps
+	cd $(SIMPLE) && $(TINYGO) build -o $(CURDIR)/apps/simple.wasm -target=wasi .
 
 apps/tipjar.wasm: examples/tipjar
 	@mkdir -p apps
@@ -33,6 +37,10 @@ test:
 ## check: run the full check suite against the reference payments app.
 check: build apps/nova.wasm
 	./bin/peephole -policy specs/nova.json -app apps/nova.wasm -scenario nova
+
+## check-simple: run the suite against Vela's own sample app (app/simple).
+check-simple: build apps/simple.wasm
+	./bin/peephole -policy specs/simple.json -app apps/simple.wasm -scenario simple
 
 ## demo: show a leaky example app failing, then its hardened fix passing.
 demo: build apps/tipjar.wasm
