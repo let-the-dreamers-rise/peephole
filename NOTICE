@@ -1,0 +1,8 @@
+peephole bundles none of Horizen's code. `make vela` downloads Horizen Vela
+and vela-nova from github.com/HorizenOfficial into third_party/ for local
+testing only. Those projects are licensed under the Business Source License
+1.1 (© The Horizen Foundation); their Additional Use Grant permits internal
+evaluation and testing, which is how peephole uses them. peephole does not
+redistribute them and is not affiliated with or endorsed by Horizen.
+
+peephole's own code (everything outside third_party/) is MIT, above.

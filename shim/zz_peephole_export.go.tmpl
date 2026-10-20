@@ -1,0 +1,41 @@
+// Code added by peephole's scripts/fetch-vela.sh. Not part of upstream Vela.
+//
+// It exposes a constructor so peephole can drive the real StatelessExecutor
+// in-process (no vsock, no Nitro), using the production request handlers.
+
+package executor
+
+import (
+	"math/big"
+
+	cryptotypes "github.com/HorizenOfficial/vela/pkg/common/crypto"
+	"github.com/HorizenOfficial/vela/pkg/logger"
+)
+
+// NewPeepholeExecutor builds an executor with fresh enclave keys and the
+// fee configuration used by Vela's own tests (1 wei per fuel unit, 10 wei minimum).
+func NewPeepholeExecutor(rt Runtime, log logger.Logger) (*StatelessExecutor, error) {
+	builder, err := NewMsgToSignBuilder()
+	if err != nil {
+		return nil, err
+	}
+	ks, err := CreateNewKeySet()
+	if err != nil {
+		return nil, err
+	}
+	return &StatelessExecutor{
+		config: &Config{
+			FuelPricePerUnit: big.NewInt(1),
+			MinFeePerRequest: big.NewInt(10),
+		},
+		runtime:          rt,
+		MsgToSignBuilder: builder,
+		keySet:           ks,
+		log:              log,
+	}, nil
+}
+
+// PeepholeCommunicationPublicKey is the enclave key users encrypt payloads to.
+func (e *StatelessExecutor) PeepholeCommunicationPublicKey() *cryptotypes.PublicKeyP521 {
+	return e.keySet.CommunicationKey.PublicKey()
+}

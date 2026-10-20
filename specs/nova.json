@@ -1,0 +1,23 @@
+{
+  "app": "vela-nova (Horizen reference confidential payments)",
+  "description": "Private token transfers on Vela. Amounts and counterparties are meant to be confidential; deposits and withdrawals are public by design.",
+  "fields": [
+    { "field": "amount",       "visibleTo": ["auditor"] },
+    { "field": "counterparty", "visibleTo": ["auditor"] },
+    { "field": "invoiceId",    "visibleTo": ["auditor"] }
+  ],
+  "checks": ["event-linkability", "amount-by-length", "commitment-preimage", "operator-counterparty", "guest-log-leak"],
+  "checkParams": {
+    "commitment-preimage": {
+      "hash": "keccak256",
+      "fields": [
+        { "kind": "lenPrefixedString", "from": "secret:invoiceId" },
+        { "kind": "address",           "from": "secret:sender" },
+        { "kind": "address",           "from": "secret:token" },
+        { "kind": "uint256",           "from": "brute:amount" },
+        { "kind": "address",           "from": "brute:recipient" }
+      ],
+      "brute": { "amountMin": 0, "amountMax": 2000000000, "amountStep": 10000, "recipients": "trace" }
+    }
+  }
+}

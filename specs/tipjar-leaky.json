@@ -1,0 +1,20 @@
+{
+  "app": "tipjar (example) — leaky mode",
+  "description": "Private tips to a public jar. Amount and memo are meant to be private.",
+  "fields": [
+    { "field": "amount", "visibleTo": ["auditor"] },
+    { "field": "memo",   "visibleTo": ["auditor"] }
+  ],
+  "checks": ["amount-by-length", "commitment-preimage"],
+  "checkParams": {
+    "commitment-preimage": {
+      "hash": "keccak256",
+      "fields": [
+        { "kind": "lenPrefixedString", "from": "secret:memo" },
+        { "kind": "address",           "from": "secret:sender" },
+        { "kind": "uint64",            "from": "brute:amount" }
+      ],
+      "brute": { "amountMin": 0, "amountMax": 10000, "amountStep": 1, "recipients": "trace" }
+    }
+  }
+}
